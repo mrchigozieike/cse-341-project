@@ -1,8 +1,9 @@
+const createError = require('http-errors');
 const mongodb = require('../data/database');
 const ObjectId = require('mongodb').ObjectId;
 
 // Create a new user (POST)
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
     try {
         const user = {
             firstName: req.body.firstName,
@@ -12,36 +13,40 @@ const createUser = async (req, res) => {
         const result = await mongodb.getDatabase().db().collection('users').insertOne(user);
         res.status(201).json({ userId: result.insertedId });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        next(createError(400, error.message));
     }
 };
 
 // Get all users (GET)
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
     try {
         const users = await mongodb.getDatabase().db().collection('users').find().toArray();
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(createError(500, error.message));
     }
 };
 
 // Get a single user by ID (GET)
-const getSingleUser = async (req, res) => {
+const getSingleUser = async (req, res, next) => {
     try {
         const userId = new ObjectId(req.params.id);
         const user = await mongodb.getDatabase().db().collection('users').findOne({ _id: userId });
 
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) throw createError(404, 'User not found');
         
         res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        if (error instanceof ObjectId.InvalidIdError) {
+            next(createError(400, 'Invalid user ID format'));
+        } else {
+            next(createError(500, error.message));
+        }
     }
 };
 
 // Update a user by ID (PUT)
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     try {
         const userId = new ObjectId(req.params.id);
         const updates = req.body;
@@ -51,25 +56,33 @@ const updateUser = async (req, res) => {
             { $set: updates }
         );
 
-        if (result.matchedCount === 0) return res.status(404).json({ message: 'User not found' });
+        if (result.matchedCount === 0) throw createError(404, 'User not found');
         
         res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        if (error instanceof ObjectId.InvalidIdError) {
+            next(createError(400, 'Invalid user ID format'));
+        } else {
+            next(createError(400, error.message));
+        }
     }
 };
 
 // Delete a user by ID (DELETE)
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     try {
         const userId = new ObjectId(req.params.id);
         const result = await mongodb.getDatabase().db().collection('users').deleteOne({ _id: userId });
 
-        if (result.deletedCount === 0) return res.status(404).json({ message: 'User not found' });
+        if (result.deletedCount === 0) throw createError(404, 'User not found');
 
         res.status(200).json({ message: 'User deleted' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        if (error instanceof ObjectId.InvalidIdError) {
+            next(createError(400, 'Invalid user ID format'));
+        } else {
+            next(createError(500, error.message));
+        }
     }
 };
 
