@@ -1,9 +1,7 @@
 const express = require('express');
 const mongodb = require('./data/database');
-const app = express();
-const createError = require('http-errors'); // Remove duplicate declaration
-
-const path = require('path');
+const createError = require('http-errors');
+const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
@@ -15,22 +13,42 @@ const {
     validate,
 } = require('./middlewares/validation');
 
+// Import routes
+const userRoutes = require('./routes/index'); // Adjust the path to your user routes
+const authRoutes = require('./routes/auth'); // Adjust the path to your auth routes (login, etc.)
+
+const app = express();
+
 // Swagger setup for API documentation
 const swaggerUIPath = require('swagger-ui-express');
 const swaggerjsonFilePath = require('./swagger-output.json');
 app.use('/api-docs', swaggerUIPath.serve, swaggerUIPath.setup(swaggerjsonFilePath));
 
-// Routes setup
-app.use('/', require('./routes')); // Assuming all routes are bundled in './routes'
-
+// Middleware setup
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
-);
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+
+// JWT Verification Middleware
+const verifyToken = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ message: 'Access Denied. No token provided.' });
+    }
+
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({ message: 'Invalid Token' });
+    }
+};
+
+// Routes setup
+app.use('/api/auth', authRoutes); // Public routes for authentication
+app.use('/api/', verifyToken, userRoutes); // Protected routes for user operations
 
 app.get('/', (req, res) => {
     res.send('Node.js file upload REST APIs');
@@ -38,12 +56,11 @@ app.get('/', (req, res) => {
 
 // Handle non-existent routes and pass to error handler
 app.use((req, res, next) => {
-    next(createError(404, 'Not Found')); // Using createError for 404 errors
+    next(createError(404, 'Not Found'));
 });
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-    // Handle any error and return a proper response
     err.statusCode = err.statusCode || 500;
     err.message = err.message || 'Internal Server Error';
     res.status(err.statusCode).json({
