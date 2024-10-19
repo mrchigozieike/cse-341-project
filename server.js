@@ -4,7 +4,7 @@ const createError = require('http-errors');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+require('dotenv').config;
 const {
     createUserValidation,
     updateUserValidation,
@@ -38,7 +38,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verified;
         next();
     } catch (err) {
@@ -48,10 +48,12 @@ const verifyToken = (req, res, next) => {
 
 // Routes setup
 app.use('/api/auth', authRoutes); // Public routes for authentication
-app.use('/api/', verifyToken, userRoutes); // Protected routes for user operations
+app.use('/api/', verifyToken, ); // Protected routes for user/products operations
+
+
 
 app.get('/', (req, res) => {
-    res.send('Node.js file upload REST APIs');
+    res.send('Hello World');
 });
 
 // Handle non-existent routes and pass to error handler
