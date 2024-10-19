@@ -5,32 +5,57 @@ GET http://localhost:5500/
 ### Get all users
 GET http://localhost:5500/users
 
-
 ### Create a new user
 POST http://localhost:5500/users
 Content-Type: application/json
 
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com"
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "password123"
 }
 
-
-### Get all products
-GET http://localhost:5500/products
-
-
-
-### Update a product
-PUT http://localhost:5500/products/64f7c9d7f28a47a0c8e3df1b
+### Update an existing user
+PUT http://localhost:5500/users/6708b26260f0b29d3e8266b7
 Content-Type: application/json
 
 {
-  "name": "Updated Laptop",
-  "price": 1150
+  "username": "newusername",
+  "email": "newemail@example.com"
 }
 
+### Get a user by ID
+GET http://localhost:5500/users/{6708b26260f0b29d3e8266b7}
 
-### Delete a product
-DELETE http://localhost:5500/products/64f7c9d7f28a47a0c8e3df1b
+### Delete a user by ID
+DELETE http://localhost:5500/users/{6708b26260f0b29d3e8266b7}
+
+### Create a new product
+POST http://localhost:5500/products
+Content-Type: application/json
+
+{
+  "name": "Product Name",
+  "description": "This is a sample product",
+  "price": 29.99,
+  "category": "Electronics",
+  "stock": 100
+}
+
+### Update a product by ID
+PUT http://localhost:5500/api/products/{6708b26260f0b29d3e8266b7}
+Content-Type: application/json
+
+{
+  "name": "Updated Product Name",
+  "description": "Updated description",
+  "price": 19.99,
+  "category": "Updated Category",
+  "stock": 50
+}
+
+### Get a product by ID
+GET http://localhost:5500/products/{6708b26260f0b29d3e8266b7}
+
+### Delete a product by ID
+DELETE http://localhost:5500/products/{6708b26260f0b29d3e8266b7}
