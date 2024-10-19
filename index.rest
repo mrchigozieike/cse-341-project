@@ -1,0 +1,36 @@
+### Get "Hello World One"
+GET http://localhost:5500/
+
+
+### Get all users
+GET http://localhost:5500/users
+
+
+### Create a new user
+POST http://localhost:5500/users
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com"
+}
+
+
+### Get all products
+GET http://localhost:5500/products
+
+
+
+### Update a product
+PUT http://localhost:5500/products/64f7c9d7f28a47a0c8e3df1b
+Content-Type: application/json
+
+{
+  "name": "Updated Laptop",
+  "price": 1150
+}
+
+
+### Delete a product
+DELETE http://localhost:5500/products/64f7c9d7f28a47a0c8e3df1b
